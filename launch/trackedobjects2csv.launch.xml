@@ -1,0 +1,12 @@
+<launch>
+    <arg name="csv_directory_path" default="/default/path/to/directory" />
+    <arg name="input_topic" default="/tracked_objects" />
+
+    <node pkg="objects_to_csv" 
+          exec="tracked_objects_to_csv" 
+          name="tracked_objects_to_csv_node" 
+          output="screen">
+        <param name="csv_directory_path" value="$(var csv_directory_path)" />
+        <param name="input_topic" value="$(var input_topic)" />
+    </node>
+</launch>

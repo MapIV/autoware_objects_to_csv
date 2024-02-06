@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>tracked_objects_to_csv</name>
+  <name>objects_to_csv</name>
   <version>0.0.1</version>
   <description>A ROS2 package for tracking objects and exporting to CSV.</description>
 
-  <maintainer email="your-email@example.com">Your Name</maintainer>
-  <license>TODO: License declaration</license>
+  <maintainer email="support@map4.jp">Map4 Inc.</maintainer>
+  <license>Private</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>rclcpp</depend>

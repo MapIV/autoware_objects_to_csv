@@ -15,19 +15,23 @@ public:
     TrackedObjectsToCSV() : Node("tracked_objects_to_csv"), sequence_number(-1) {
       // CSV input directory path
         this->declare_parameter<std::string>("csv_directory_path", "/default/path/to/directory");
+        this->declare_parameter<std::string>("input_topic", "/tracked_object");
         std::string directory_path;
         this->get_parameter("csv_directory_path", directory_path);
+        std::string input_topic;
+        this->get_parameter("input_topic", input_topic);
 
         // Generate the timestamped filename
-        std::string csv_file_path = directory_path + "/" + generate_timestamped_filename();
+        csv_file_path_ = directory_path + "/" + generate_timestamped_filename();
 
+        RCLCPP_INFO_STREAM(this->get_logger(), "Launching DetectedObjectsToCSV node with directory path: " << csv_file_path_ << " and input topic: " << input_topic);
 
         rclcpp::QoS qos(rclcpp::KeepLast(100));
         qos.best_effort();
 
 
         subscription_ = this->create_subscription<TrackedObjects>(
-            "/tracked_objects",
+            input_topic,
             qos,
             bind(&TrackedObjectsToCSV::listener_callback, this, placeholders::_1)
         );
@@ -37,14 +41,14 @@ public:
 
 private:
     void initialize_csv() {
-        ofstream csvfile(csv_file_path, ios::out | ios::trunc);
+        ofstream csvfile(csv_file_path_, ios::out | ios::trunc);
         csvfile << "timestamp,sequence_number,object_id,object_class,x_position,y_position,z_position,"
                 << "x_dimension,y_dimension,z_dimension,quaternion_x,quaternion_y,quaternion_z,quaternion_w,"
                 << "velocity_x,velocity_y,velocity_z" << endl;
     }
 
     void listener_callback(const TrackedObjects::SharedPtr msg) {
-        ofstream csvfile(csv_file_path, ios::out | ios::app);
+        ofstream csvfile(csv_file_path_, ios::out | ios::app);
         sequence_number++;
 
         for (auto &obj : msg->objects) {
@@ -92,7 +96,7 @@ private:
 
     rclcpp::Subscription<TrackedObjects>::SharedPtr subscription_;
     int sequence_number;
-    const string csv_file_path = "/home/pe/atomicengine/src/atomicengine/scripts/misc/aisan/aisan.csv";
+    std::string csv_file_path_;
 };
 
 int main(int argc, char *argv[]) {
