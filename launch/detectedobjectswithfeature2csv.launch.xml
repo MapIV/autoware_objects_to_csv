@@ -3,8 +3,8 @@
     <arg name="input_topic" default="/detected_objects" />
 
     <node pkg="objects_to_csv" 
-          exec="tracked_objects_to_multiple_csv" 
-          name="tracked_objects_to_multiple_csv_node" 
+          exec="detected_objects_with_feature_to_csv" 
+          name="detected_objects_with_feature_to_csv_node" 
           output="screen">
         <param name="csv_directory_path" value="$(var csv_directory_path)" />
         <param name="input_topic" value="$(var input_topic)" />

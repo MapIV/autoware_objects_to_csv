@@ -1,5 +1,5 @@
 #include "rclcpp/rclcpp.hpp"
-#include "autoware_perception_msgs/msg/tracked_objects.hpp"
+#include "autoware_auto_perception_msgs/msg/tracked_objects.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -8,7 +8,7 @@
 
 using namespace std;
 using namespace std::chrono_literals;
-using TrackedObjects = autoware_perception_msgs::msg::TrackedObjects;
+using TrackedObjects = autoware_auto_perception_msgs::msg::TrackedObjects;
 
 class TrackedObjectsToCSV : public rclcpp::Node {
 public:

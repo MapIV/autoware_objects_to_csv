@@ -1,5 +1,5 @@
 #include "rclcpp/rclcpp.hpp"
-#include "autoware_auto_perception_msgs/msg/detected_objects.hpp"
+#include "autoware_perception_msgs/msg/tracked_objects.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -8,37 +8,37 @@
 
 using namespace std;
 using namespace std::chrono_literals;
-using DetectedObjects = autoware_auto_perception_msgs::msg::DetectedObjects;
+using TrackedObjects = autoware_perception_msgs::msg::TrackedObjects;
 
-class DetectedObjectsToCSV : public rclcpp::Node {
+class TrackedObjectsToMultipleCSV : public rclcpp::Node {
 public:
-    DetectedObjectsToCSV() : Node("detected_objects_to_csv") {
+    TrackedObjectsToMultipleCSV() : Node("tracked_objects_to_multiple_csv") {
       // CSV input directory path
         this->declare_parameter<std::string>("csv_directory_path", "/default/path/to/directory");
-        this->declare_parameter<std::string>("input_topic", "/detected_object");
+        this->declare_parameter<std::string>("input_topic", "/tracked_object");
         std::string directory_path;
         this->get_parameter("csv_directory_path", csv_file_path_);
         std::string input_topic;
         this->get_parameter("input_topic", input_topic);
 
-        RCLCPP_INFO_STREAM(this->get_logger(), "Launching DetectedObjectsToCSV node with directory path: " << csv_file_path_ << " and input topic: " << input_topic);
+        RCLCPP_INFO_STREAM(this->get_logger(), "Launching TrackedObjectsToMultipleCSV node with directory path: " << csv_file_path_ << " and input topic: " << input_topic);
 
         rclcpp::QoS qos(rclcpp::KeepLast(100));
         qos.best_effort();
 
-        subscription_ = this->create_subscription<DetectedObjects>(
+        subscription_ = this->create_subscription<TrackedObjects>(
             input_topic,
             qos,
-            bind(&DetectedObjectsToCSV::listener_callback, this, placeholders::_1)
+            bind(&TrackedObjectsToMultipleCSV::listener_callback, this, placeholders::_1)
         );
     }
 
-    void listener_callback(const DetectedObjects::SharedPtr msg) {
+    void listener_callback(const TrackedObjects::SharedPtr msg) {
         double timestamp = msg->header.stamp.sec + static_cast<double>(msg->header.stamp.nanosec) / 1e9;
         ofstream csvfile(csv_file_path_ + "/" + to_string(timestamp) + ".txt", ios::out | ios::trunc);
-        // std::cout << "DetectedObjectsToCSV::listener_callback : " << csv_file_path_ + "/" + to_string(timestamp) + ".csv" << std::endl;
-        // csvfile << "timestamp,object_class,x_position,y_position,z_position,"
-        //         << "x_dimension,y_dimension,z_dimension,quaternion_x,quaternion_y,quaternion_z,quaternion_w,score" << endl;
+        std::cout << "TrackedObjectsToMultipleCSV::listener_callback : " << csv_file_path_ + "/" + to_string(timestamp) + ".csv" << std::endl;
+        csvfile << "timestamp,object_class,object_id,x_position,y_position,z_position,"
+                << "x_dimension,y_dimension,z_dimension,quaternion_x,quaternion_y,quaternion_z,quaternion_w,score" << endl;
 
         for (auto &obj : msg->objects) {
             // const uint8 CAR = 1;
@@ -67,19 +67,19 @@ public:
                 object_class = "unknown";
             }
 
-
-            csvfile << fixed << setprecision(9) << timestamp << " "
-                    << object_class << " "
-                    << obj.kinematics.pose_with_covariance.pose.position.x << " "
-                    << obj.kinematics.pose_with_covariance.pose.position.y << " "
-                    << obj.kinematics.pose_with_covariance.pose.position.z << " "
-                    << obj.shape.dimensions.x << " "
-                    << obj.shape.dimensions.y << " "
-                    << obj.shape.dimensions.z << " "
-                    << obj.kinematics.pose_with_covariance.pose.orientation.x << " "
-                    << obj.kinematics.pose_with_covariance.pose.orientation.y << " "
-                    << obj.kinematics.pose_with_covariance.pose.orientation.z << " "
-                    << obj.kinematics.pose_with_covariance.pose.orientation.w << " " 
+            csvfile << fixed << setprecision(9) << timestamp << ","
+                    << object_class << ","
+                    << to_hex_string(obj.object_id.uuid) << ","
+                    << obj.kinematics.pose_with_covariance.pose.position.x << ","
+                    << obj.kinematics.pose_with_covariance.pose.position.y << ","
+                    << obj.kinematics.pose_with_covariance.pose.position.z << ","
+                    << obj.shape.dimensions.x << ","
+                    << obj.shape.dimensions.y << ","
+                    << obj.shape.dimensions.z << ","
+                    << obj.kinematics.pose_with_covariance.pose.orientation.x << ","
+                    << obj.kinematics.pose_with_covariance.pose.orientation.y << ","
+                    << obj.kinematics.pose_with_covariance.pose.orientation.z << ","
+                    << obj.kinematics.pose_with_covariance.pose.orientation.w << "," 
                     << obj.existence_probability << endl;
         }
     }
@@ -92,14 +92,14 @@ public:
         return ss.str();
     }
 
-    rclcpp::Subscription<DetectedObjects>::SharedPtr subscription_;
+    rclcpp::Subscription<TrackedObjects>::SharedPtr subscription_;
     std::string csv_file_path_;
 
 };
 
 int main(int argc, char *argv[]) {
     rclcpp::init(argc, argv);
-    auto node = make_shared<DetectedObjectsToCSV>();
+    auto node = make_shared<TrackedObjectsToMultipleCSV>();
     rclcpp::spin(node);
     rclcpp::shutdown();
     return 0;
